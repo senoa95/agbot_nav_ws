@@ -50,10 +50,15 @@ class PPController:
     def compute_steering_angle(self):
         steeringAngle = 0.7*math.sin(alpha)*self.length
 
+        return steeringAngle
+
 # compute forward velocity relative to steering angle
     def compute_forward_velocity(self): #added a variable velocity based on Bijo's suggestion
         #forwardVelocity = mule.maximumVelocity * (1 - atan(abs(steeringAngle))/(pi/2));  //this specifies the forward velocity at a given steering angle
         forwardVelocity = 1
+
+        return forwardVelocity
+        
 # this is a test line...
 def XYZcallback(data):
     x = data.position.x
@@ -104,12 +109,10 @@ def command():
         if (euclideanError > threshold):
             # Compute turningRadius , steeringAngle and velocity for current start and goal point:
             senaPurePursuit.compute_turning_radius(currentPoint, goalPoint)
-            senaPurePursuit.compute_steering_angle()
-            senaPurePursuit.compute_forward_velocity()
+            command = Point32()
+            command.x = senaPurePursuit.compute_steering_angle()
+            command.y = senaPurePursuit.compute_forward_velocity()
 
-        command = Point32()
-        command.x = senaPurePursuit.compute_steering_angle
-        command.y = senaPurePursuit.compute_forward_velocity
 
         pub.publish(command)
         rate.sleep()
