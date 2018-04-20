@@ -54,6 +54,7 @@ class PPController:
     def compute_forward_velocity(self): #added a variable velocity based on Bijo's suggestion
         #forwardVelocity = mule.maximumVelocity * (1 - atan(abs(steeringAngle))/(pi/2));  //this specifies the forward velocity at a given steering angle
         forwardVelocity = 1
+# this is a test line...
 def XYZcallback(data):
     x = data.position.x
     y = data.position.y
@@ -61,3 +62,4 @@ def XYZcallback(data):
 
     euler = tf.euler.quat2euler([data.orientation.x,data.orientation.y,data.orientation.z,data.orientation.w])
     yaw = euler[2]
+    # this is a second test line...
