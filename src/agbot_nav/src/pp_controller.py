@@ -16,7 +16,14 @@ class Point:
         self.y = inputY
         self.heading = inputHeading
 
-        # class to define vehicle parameters
+# Define a global variable to keep track of the current position of Vehicle
+global currentPoint
+currentPoint = Point()
+
+reachedGoal = False
+
+
+# class to define vehicle parameters
 class AckermannVehicle:
     def __init__(self,inputLength = 1,inputMaximumSteeringAngle = 1,inputMaximumVelocity = 48*pi/180):
         self.length = inputLength
@@ -58,21 +65,25 @@ class PPController:
         forwardVelocity = 1
 
         return forwardVelocity
-        
+
 # this is a test line...
 def XYZcallback(data):
-    x = data.position.x
-    y = data.position.y
-    z = data.position.z
+
+    global currentPoint
+
+    currentPoint.x = data.position.x
+    currentPoint.y = data.position.y
 
     euler = tf.euler.quat2euler([data.orientation.x,data.orientation.y,data.orientation.z,data.orientation.w])
-    yaw = euler[2]
-    # this is a second test line...
+    currentPoint.heading = euler[2]
+
 def command():
+
     global currentPoint
     global goalPoint
 
-    mule = AckermannVehicle(10,60*pi/180,1)
+    # Create objects for AckermannVehicle and Pure Pursuit controller:
+    mule = AckermannVehicle(2.5772,60*pi/180,1)
     senaPurePursuit = PPController(0,mule.length)
 
 
@@ -82,39 +93,70 @@ def command():
 
     rate = rospy.Rate(10)
 
+    # Initialize:
+    # 1. Parameters:
+    threshold = 0.5
+    euclideanError = 0
+
+    # 2. Points:
+    goalPoint = Point()
+    currentPoint = Point()
+
+    # 3. Commands:
+    command = Point32()
+    stationaryCommand = Point32()
+
+    stationaryCommand.x = 0
+    stationaryCommand.y = 0
+
+    # Loop through as long as the node is not shutdown:
     while not rospy.is_shutdown():
 
+        # Update the current Point:
 
-        threshold = 0.5
-        euclideanError = 0
+        # Case #1:Vehicle is in the vicinity of current goal point (waypoint):
+        if (euclideanError < threshold):
 
-        while (euclideanError < threshold):
-            goalPoint = Point()
-            currentPoint = Point()
+            reachedGoal = True
 
+            # Make the AckermannVehicle stop where it is
+            pub.publish(stationaryCommand)
+
+            # Acquire the new goal point from the user:
             goalPoint.x = int(input('Enter goX:'))
             goalPoint.y = int(input('Enter goY:'))
             goalPoint.heading = int(input('Enter goHeading:'))
 
-
-            senaPurePursuit.compute_turning_radius(currentPoint, goalPoint)
-            senaPurePursuit.compute_steering_angle()
-
+            # Recompute the new Euclidean error:
             euclideanError = math.sqrt((math.pow((goalPoint.x-currentPoint.x),2) + math.pow((goalPoint.y-currentPoint.y),2)))
 
 
-        # Recompute Euclidean error if euclideanErro !< threshold:
-        euclideanError = math.sqrt((math.pow((goalPoint.x-currentPoint.x),2) + math.pow((goalPoint.y-currentPoint.y),2)))
+        # # Recompute Euclidean error if euclideanErro !< threshold:
+        # euclideanError = math.sqrt((math.pow((goalPoint.x-currentPoint.x),2) + math.pow((goalPoint.y-currentPoint.y),2)))
 
+        print (" Euclidean Error = ", euclideanError)
+
+        # Case #2:
         if (euclideanError > threshold):
-            # Compute turningRadius , steeringAngle and velocity for current start and goal point:
-            senaPurePursuit.compute_turning_radius(currentPoint, goalPoint)
-            command = Point32()
-            command.x = senaPurePursuit.compute_steering_angle()
-            command.y = senaPurePursuit.compute_forward_velocity()
+
+            if reachedGoal:
+                # Compute turningRadius , steeringAngle and velocity for current start and goal point:
+                senaPurePursuit.compute_turning_radius(currentPoint, goalPoint)
+
+                command = Point32()
+                command.x = senaPurePursuit.compute_steering_angle()
+                command.y = senaPurePursuit.compute_forward_velocity()
+
+            reachedGoal = False
+
+            # Publish the computed command:
+            pub.publish(command)
+
+            # Recompute the Euclidean error to see if its reducing:
+            euclideanError = math.sqrt((math.pow((goalPoint.x-currentPoint.x),2) + math.pow((goalPoint.y-currentPoint.y),2)))
 
 
-        pub.publish(command)
+
         rate.sleep()
 
     rospy.spin()
