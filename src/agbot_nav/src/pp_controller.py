@@ -111,7 +111,6 @@ def command():
         command.x = senaPurePursuit.compute_steering_angle
         command.y = senaPurePursuit.compute_forward_velocity
 
-        print 'works'
         pub.publish(command)
         rate.sleep()
 
