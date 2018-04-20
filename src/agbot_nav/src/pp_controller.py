@@ -63,3 +63,59 @@ def XYZcallback(data):
     euler = tf.euler.quat2euler([data.orientation.x,data.orientation.y,data.orientation.z,data.orientation.w])
     yaw = euler[2]
     # this is a second test line...
+def command():
+    global currentPoint
+    global goalPoint
+
+    mule = AckermannVehicle(10,60*pi/180,1)
+    senaPurePursuit = PPController(0,mule.length)
+
+
+    rospy.Subscriber("/agBOT/local/Pose", Pose, XYZcallback)
+    pub = rospy.Publisher('/agBOT/ackermann_cmd', Point32, queue_size =10)
+    rospy.init_node('ppcontroller', anonymous=True)
+
+    rate = rospy.Rate(10)
+
+    while not rospy.is_shutdown():
+
+
+        threshold = 0.5
+        euclideanError = 0
+
+        while (euclideanError < threshold):
+            goalPoint = Point()
+            currentPoint = Point()
+
+            goalPoint.x = int(input('Enter goX:'))
+            goalPoint.y = int(input('Enter goY:'))
+            goalPoint.heading = int(input('Enter goHeading:'))
+
+
+            senaPurePursuit.compute_turning_radius(currentPoint, goalPoint)
+            senaPurePursuit.compute_steering_angle()
+
+            euclideanError = math.sqrt((math.pow((goalPoint.x-currentPoint.x),2) + math.pow((goalPoint.y-currentPoint.y),2)))
+
+
+        # Recompute Euclidean error if euclideanErro !< threshold:
+        euclideanError = math.sqrt((math.pow((goalPoint.x-currentPoint.x),2) + math.pow((goalPoint.y-currentPoint.y),2)))
+
+        if (euclideanError > threshold):
+            # Compute turningRadius , steeringAngle and velocity for current start and goal point:
+            senaPurePursuit.compute_turning_radius(currentPoint, goalPoint)
+            senaPurePursuit.compute_steering_angle()
+            senaPurePursuit.compute_forward_velocity()
+
+        command = Point32()
+        command.x = senaPurePursuit.compute_steering_angle
+        command.y = senaPurePursuit.compute_forward_velocity
+
+        print 'works'
+        pub.publish(command)
+        rate.sleep()
+
+    rospy.spin()
+
+if __name__ == '__main__':
+    command()
