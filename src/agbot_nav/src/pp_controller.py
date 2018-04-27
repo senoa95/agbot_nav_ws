@@ -88,9 +88,11 @@ def command():
         threshold = 0.5
         euclideanError = 0
 
+        goalPoint = Point()
+        currentPoint = Point()
+
         while (euclideanError < threshold):
-            goalPoint = Point()
-            currentPoint = Point()
+
 
             goalPoint.x = int(input('Enter goX:'))
             goalPoint.y = int(input('Enter goY:'))
