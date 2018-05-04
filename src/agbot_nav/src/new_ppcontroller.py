@@ -24,6 +24,8 @@ def XYZcallback(data):
     currentPos.y = data.position.y
 
     euler = tf.euler.quat2euler([data.orientation.x,data.orientation.y,data.orientation.z,data.orientation.w])
+    #euler[1] = euler[1] - 1.57
+    #euler[2] = euler[2] + 3.14
     currentPos.heading = euler[0]
 
 

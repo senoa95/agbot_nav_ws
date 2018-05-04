@@ -30,7 +30,7 @@ class PPController:
         self.leadDistance = inputLeadDistance
         self.length = inputLength #set the length for ppcontroller as the length of maximumSteeringAngle
         self.turningRadius = 1
-        self.maximumVelocity = 0.4
+        self.maximumVelocity = 0.1
 
         # List of waypoints: From start to end:
         self.wpList = []
@@ -50,9 +50,11 @@ class PPController:
         # Tuning gains:
         self.k_theta = 0.05
 
-        self.k_delta = 0.9
+        self.k_delta = 1.80
 
         self.k_vel = 0
+
+        self.minVelocity = 0.1
 
     # Initialize the controller from a text file containing the waypoints:
     def initialize(self,fileName):
@@ -105,17 +107,21 @@ class PPController:
         # Compute the steering angle command:
         delta = -self.k_delta*(current.heading - theta_des)
 
-        if (self.currWpIdx ==0):
-            print ( "Normal Vec = ", self.segNormVecList[:,self.currWpIdx])
-            print (" Robot2Wp Vec = ", vecRobot2Wp)
-            print (" Minimum Dist = ", minDist)
+        # if (self.currWpIdx ==0):
+        #     print ( "Normal Vec = ", self.segNormVecList[:,self.currWpIdx])
+        #     print (" Robot2Wp Vec = ", vecRobot2Wp)
+        #     print (" Minimum Dist = ", minDist)
             # print (" Target heading = ", self.tgtHeading[self.currWpIdx] )
             # print (" Current heading = " , current.heading)
             # print (" Desired Theta = ", theta_des)
             # print (" Steering angle = ", delta)
 
         # Compute forward velocity:
-        vel = self.maximumVelocity - self.k_vel*delta
+        vel = self.maximumVelocity - abs(self.k_vel*delta)
+
+        if vel < 0:
+
+            vel = self.minVelocity
 
         return vel,delta
 
