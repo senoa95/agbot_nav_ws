@@ -55,7 +55,7 @@ def execute(cntrl):
 
     # Initialize:
     # 1. Parameters:
-    threshold = 0.2
+    threshold = 1.5
     euclideanError = 0
 
     # 2. Points:
@@ -85,7 +85,13 @@ def execute(cntrl):
             # Update goal Point to next point in the waypoint list:
             cntrl.currWpIdx +=1
 
-            goalPoint = cntrl.wpList[cntrl.currWpIdx]
+            if cntrl.currWpIdx < cntrl.nPts:
+                goalPoint = cntrl.wpList[cntrl.currWpIdx]
+
+            else:
+
+                print (" --- All Waypoints have been conquered! Mission Accomplished Mr Hunt !!! --- ")
+                break
 
 
             print (" New goal is: ")
@@ -110,6 +116,7 @@ def execute(cntrl):
 
             # Recompute the Euclidean error to see if its reducing:
             euclideanError = math.sqrt((math.pow((goalPoint.x-currentPos.x),2) + math.pow((goalPoint.y-currentPos.y),2)))
+
 
         rate.sleep()
 

@@ -30,7 +30,7 @@ class PPController:
         self.leadDistance = inputLeadDistance
         self.length = inputLength #set the length for ppcontroller as the length of maximumSteeringAngle
         self.turningRadius = 1
-        self.maximumVelocity = 0.1
+        self.maximumVelocity = 0.6
 
         # List of waypoints: From start to end:
         self.wpList = []
@@ -48,11 +48,11 @@ class PPController:
         self.nPts = 0
 
         # Tuning gains:
-        self.k_theta = 0.05
+        self.k_theta = 0.2
 
-        self.k_delta = 1.80
+        self.k_delta = 0.65
 
-        self.k_vel = 0
+        self.k_vel = 0.2
 
         self.minVelocity = 0.1
 
@@ -70,10 +70,13 @@ class PPController:
             self.wpList.append(Point(float(spLine[0]) , float(spLine[1])))
 
         self.nPts = len(self.wpList)
-        self.segNormVecList = np.zeros((2,self.nPts - 1))
+        self.segNormVecList = np.zeros((2,self.nPts))
+
+        self.tgtHeading.append(0)
+
 
         # Loop to compute the target heading values:
-        for idx in range(0, len(self.wpList) - 1):
+        for idx in range(0, len(self.wpList)-1):
 
             self.tgtHeading.append( math.atan2( self.wpList[idx + 1].y - self.wpList[idx].y , self.wpList[idx+1].x - self.wpList[idx].x))
 
@@ -83,8 +86,12 @@ class PPController:
             # Calculate the norm:
             nVecMag = np.sqrt( normX**2 + normY**2)
 
-            self.segNormVecList[0,idx] = normX/nVecMag
-            self.segNormVecList[1,idx] = normY/nVecMag
+            self.segNormVecList[0,idx+1] = normX/nVecMag
+            self.segNormVecList[1,idx+1] = normY/nVecMag
+
+        self.tgtHeading[0] = self.tgtHeading[1]
+        self.segNormVecList[:,0] = self.segNormVecList[:,1]
+
 
 
     # Function to compute steering angle and forward velocity commands:
@@ -96,8 +103,7 @@ class PPController:
         vecRobot2Wp[1,0] =  self.wpList[self.currWpIdx].y - current.y
 
         # Compute the minimum distance from the current segment:
-        minDist = abs(np.dot(vecRobot2Wp.T, self.segNormVecList[:,self.currWpIdx]))
-
+        minDist = -np.dot(vecRobot2Wp.T, self.segNormVecList[:,self.currWpIdx])
 
 
         # Compute the desired heading angle based of target heading and the min dist:
@@ -105,21 +111,22 @@ class PPController:
 
 
         # Compute the steering angle command:
-        delta = -self.k_delta*(current.heading - theta_des)
+        delta = self.k_delta*(theta_des - current.heading)
 
+        # Debugging section:
         # if (self.currWpIdx ==0):
-        #     print ( "Normal Vec = ", self.segNormVecList[:,self.currWpIdx])
-        #     print (" Robot2Wp Vec = ", vecRobot2Wp)
+        #     # print ( "Normal Vec = ", self.segNormVecList[:,self.currWpIdx])
+        #     # print (" Robot2Wp Vec = ", vecRobot2Wp)
         #     print (" Minimum Dist = ", minDist)
-            # print (" Target heading = ", self.tgtHeading[self.currWpIdx] )
-            # print (" Current heading = " , current.heading)
-            # print (" Desired Theta = ", theta_des)
-            # print (" Steering angle = ", delta)
+        #     print (" Target heading = ", self.tgtHeading[self.currWpIdx] )
+        #     print (" Current heading = " , current.heading)
+        #     # print (" Desired Theta = ", theta_des)
+        #     print (" Steering angle = ", delta)
 
         # Compute forward velocity:
         vel = self.maximumVelocity - abs(self.k_vel*delta)
 
-        if vel < 0:
+        if vel < self.minVelocity:
 
             vel = self.minVelocity
 
@@ -149,7 +156,7 @@ class PPController:
 
         return steeringAngle
 
-# compute forward velocity relative to steering angle
+    # compute forward velocity relative to steering angle
     def compute_forward_velocity(self): #added a variable velocity based on Bijo's suggestion
         #forwardVelocity = mule.maximumVelocity * (1 - atan(abs(steeringAngle))/(pi/2));  //this specifies the forward velocity at a given steering angle
         forwardVelocity = 0.4

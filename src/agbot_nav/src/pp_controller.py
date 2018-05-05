@@ -92,8 +92,8 @@ def command():
 
 
     rospy.Subscriber("/agBOT/local/Pose", Pose, XYZcallback)
-    pub = rospy.Publisher('/agBOT/ackermann_cmd', Point32, queue_size =10)
     rospy.init_node('ppcontroller', anonymous=True)
+    pub = rospy.Publisher('/agBOT/ackermann_cmd', Point32, queue_size =10)
 
     rate = rospy.Rate(10)
 
