@@ -77,6 +77,8 @@ def XYZcallback(data):
     currentPoint.y = data.position.y
 
     euler = tf.euler.quat2euler([data.orientation.x,data.orientation.y,data.orientation.z,data.orientation.w])
+    euler[1] = euler[1] - 1.57
+    euler[2] = euler[2] + 3.14
     currentPoint.heading = euler[2]
 
 def command():
@@ -90,8 +92,8 @@ def command():
 
 
     rospy.Subscriber("/agBOT/local/Pose", Pose, XYZcallback)
-    pub = rospy.Publisher('/agBOT/ackermann_cmd', Point32, queue_size =10)
     rospy.init_node('ppcontroller', anonymous=True)
+    pub = rospy.Publisher('/agBOT/ackermann_cmd', Point32, queue_size =10)
 
     rate = rospy.Rate(10)
 
@@ -164,4 +166,4 @@ def command():
     rospy.spin()
 
 if __name__ == '__main__':
-    command()
+command()
