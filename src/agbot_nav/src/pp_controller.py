@@ -123,16 +123,11 @@ def command():
 
             reachedGoal = True
 
-<<<<<<< HEAD
         goalPoint = Point()
         currentPoint = Point()
 
         while (euclideanError < threshold):
 
-=======
-            # Make the AckermannVehicle stop where it is
-            pub.publish(stationaryCommand)
->>>>>>> 69782bf1db893805c5535b2e1eb2c4a234536cd1
 
             # Acquire the new goal point from the user:
             goalPoint.x = int(input('Enter goX:'))
