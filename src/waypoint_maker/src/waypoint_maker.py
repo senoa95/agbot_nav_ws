@@ -7,8 +7,9 @@ from sensor_msgs.msg import NavSatFix
 import csv
 import math
 import utm
+import time
+import os
 
-global x
 global previous_x
 global previous_y
 global current_x
@@ -19,12 +20,16 @@ previous_y = 0
 current_x = 0
 current_y = 0
 
+i = 0
 
-waypoint_file =  open('waypoints.txt','w')
+while os.path.exists("/home/senoa95/agbot_nav_ws/src/agbot_nav/src/waypoints_%s.txt" % i):
+    i += 1
+    print(i)
+
+waypoint_file =  open(os.path.join("/home/senoa95/agbot_nav_ws/src/agbot_nav/src/","waypoints_%s.txt" % i),"w")
 
 def pose_callback(data):
 
-    global x
     global previous_x
     global previous_y
     global current_x
@@ -37,13 +42,12 @@ def pose_callback(data):
     current_x = iniX
     current_y = iniY
 
-# def heading_callback(heading_data):
-#     rospy.loginfo(rospy.get_caller_id(), heading_data.heading_data)
-#     yaw = heading_data.z
+def heading_callback(heading_data):
+    rospy.loginfo(rospy.get_caller_id(), heading_data.heading_data)
+    yaw = heading_data.z
 
 def waypoint_maker():
 
-    global x
     global previous_x
     global previous_y
     global current_x
@@ -55,20 +59,17 @@ def waypoint_maker():
 
     while not rospy.is_shutdown():
 
-        euclideanError = math.sqrt((math.pow((current_x-previous_x),2) + math.pow((current_y-previous_y),2)))
-        print(euclideanError)
+        euclideanDistance = math.sqrt((math.pow((current_x-previous_x),2) + math.pow((current_y-previous_y),2)))
 
-        if euclideanError > 1:
+        if euclideanDistance > 0.5:
+            print("distance = ", euclideanDistance)
+
             waypoint_file.write(str(current_x)+","+str(current_y)+"\r\n")
             # value = [current_x,current_y]
             # waypoint_file.write(value)
             previous_x = current_x
             previous_y = current_y
 
-
-
-
 if __name__ == '__main__':
     waypoint_maker()
-    waypoint_file.close()
     # heading_callback()

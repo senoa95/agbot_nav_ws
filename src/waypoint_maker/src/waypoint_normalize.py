@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-file = open("waypoints.txt","r")
-file2 = open("waypoints_normalized.txt","w")
+file = open("waypoints_0.txt","r")
+file2 = open("waypoints_normalized_0.txt","w")
 
 data = file.readline()
 data_sp = data.split(',')
