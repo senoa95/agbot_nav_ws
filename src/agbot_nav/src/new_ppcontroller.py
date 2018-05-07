@@ -21,7 +21,7 @@ global currentPos
 currentPos = Point()
 global file_name
 # file_name = rospy.get_param("/file_name")
-file_name = "dummy_wp.txt"
+file_name = "number8.txt"
 
 # Callback function for subscriber to Position and orientation topic:
 def XYZcallback(data):
@@ -56,7 +56,7 @@ def initialize():
 def execute(cntrl):
 
     global currentPos
-
+    distance2Goal = 100000000
     # Setup the ROS publishers and subscribers:
     rospy.Subscriber("/agBOT/local/Pose", Pose, XYZcallback)
     pub = rospy.Publisher('/agBOT/ackermann_cmd', Point32, queue_size =10)
@@ -85,13 +85,15 @@ def execute(cntrl):
 
         # Compute the new Euclidean error:
         current_goalPoint = Point32(goalPoint.x,goalPoint.y,0)
+        # print('current Index: ',cntrl.currWpIdx)
+        # print('waypoint list:', cntrl.wpList[:cntrl.currWpIdx])
         # current_goalPoint = [str(goalPoint.x),str(goalPoint.y),'0']
         pub_goal.publish(current_goalPoint)
 
-        euclideanError = math.sqrt((math.pow((goalPoint.x-currentPos.x),2) + math.pow((goalPoint.y-currentPos.y),2)))
+        # euclideanError = math.sqrt((math.pow((goalPoint.x-currentPos.x),2) + math.pow((goalPoint.y-currentPos.y),2)))
 
         # Case #1:Vehicle is in the vicinity of current goal point (waypoint):
-        if (euclideanError < threshold):
+        if (distance2Goal < 0):
 
             # Make the AckermannVehicle stop where it is
             pub.publish(stationaryCommand)
@@ -118,20 +120,18 @@ def execute(cntrl):
         # print (" Euclidean Error = ", euclideanError , " meters")
 
         # Case #2:
-        if (euclideanError > threshold):
+        #if (euclideanError > threshold):
+        vel, delta, distance2Goal = cntrl.compute_steering_vel_cmds(currentPos)
 
-            # Compute steering and velocity commands according to Dr L controller
-            vel, delta = cntrl.compute_steering_vel_cmds(currentPos)
+        command = Point32()
+        command.x = delta
+        command.y = vel
 
-            command = Point32()
-            command.x = delta
-            command.y = vel
-
-            # Publish the computed command:
-            pub.publish(command)
+        # Publish the computed command:
+        pub.publish(command)
 
             # Recompute the Euclidean error to see if its reducing:
-            euclideanError = math.sqrt((math.pow((goalPoint.x-currentPos.x),2) + math.pow((goalPoint.y-currentPos.y),2)))
+            #euclideanError = math.sqrt((math.pow((goalPoint.x-currentPos.x),2) + math.pow((goalPoint.y-currentPos.y),2)))
 
 
         rate.sleep()

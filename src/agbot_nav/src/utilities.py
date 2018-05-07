@@ -114,6 +114,18 @@ class PPController:
         vecRobot2Wp[0,0] =  self.wpList[self.currWpIdx].x - current.x
         vecRobot2Wp[1,0] =  self.wpList[self.currWpIdx].y - current.y
 
+        # vecRobot2GoalWp = np.zeros((2,1))
+        # vecRobot2GoalWp[0,0] =  self.wpList[self.currWpIdx + 1].x - current.x
+        # vecRobot2GoalWp[1,0] =  self.wpList[self.currWpIdx + 1].y - current.y
+
+        vecCurHeading = np.zeros((2,1))
+        vecCurHeading[0,0] = math.cos(self.tgtHeading[self.currWpIdx])
+        vecCurHeading[1,0] = math.sin(self.tgtHeading[self.currWpIdx])
+
+        distance2Goal = np.dot(vecRobot2Wp.T, self.unit_vector(vecCurHeading))
+        # vecNormAtGoal = self.segNormVecList[:,self.currWpIdx] + self.wpList[self.currWpIdx + 1]
+        # print('distance2Goal', distance2Goal)
+
         # Compute the minimum distance from the current segment:
         minDist = np.dot(vecRobot2Wp.T, self.segNormVecList[:,self.currWpIdx])
         theta_gain = self.k_theta * minDist
@@ -121,15 +133,15 @@ class PPController:
             theta_gain = math.pi/2
         if theta_gain < -math.pi/2:
             theta_gain = -math.pi/2
-        print('minDist = ', minDist)
-        print('theta_gain =', theta_gain)
+        # print('minDist = ', minDist)
+        # print('theta_gain =', theta_gain)
         # Compute the desired heading angle based of target heading and the min dist:
         # if self.tgtHeading[self.currWpIdx] >= 0:
         theta_des = self.tgtHeading[self.currWpIdx] + theta_gain
         # else:
         #     theta_des = self.tgtHeading[self.currWpIdx] - theta_gain
 
-        print('Theta des = ',theta_des)
+        # print('Theta des = ',theta_des)
         # Compute the steering agle command:
         # theta_des_vec =(math.cos(theta_des), math.sin(theta_des))
         # curr_heading_vec = (math.cos(current.heading), math.sin(current.heading))
@@ -149,7 +161,7 @@ class PPController:
         #     # print ( "Normal Vec = ", self.segNormVecList[:,self.currWpIdx])
         #     # print (" Robot2Wp Vec = ", vecRobot2Wp)
         #     print (" Minimum Dist = ", minDist)
-        print('Target heading = ', self.tgtHeading[self.currWpIdx] )
+        # print('Target heading = ', self.tgtHeading[self.currWpIdx] )
         #     print (" Current heading = " , current.heading)
         #     # print (" Desired Theta = ", theta_des)
         #     print (" Steering angle = ", delta)
@@ -166,7 +178,9 @@ class PPController:
         if delta < -1:
             delta = -1
 
-        return vel,delta
+
+
+        return vel,delta, distance2Goal
 
     # compute the steering radius of ackerman vehicle of given parameters
     def compute_turning_radius(self, current = Point(0,0,0) , goal = Point(0,0,0)):
@@ -198,9 +212,9 @@ class PPController:
         forwardVelocity = 0.4
 
         return forwardVelocity
-    # def unit_vector(self,vector):
-    #     """ Returns the unit vector of the vector.  """
-    #     return vector / np.linalg.norm(vector)
+    def unit_vector(self,vector):
+        """ Returns the unit vector of the vector.  """
+        return vector / np.linalg.norm(vector)
     #
     # def angle_between(self,v1, v2):
     #     """ Returns the angle in radians between vectors 'v1' and 'v2'::
