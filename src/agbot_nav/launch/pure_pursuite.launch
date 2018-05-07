@@ -2,5 +2,4 @@
 <launch>
   <node name="pure_pursuite" pkg="agbot_nav" type="new_ppcontroller.py"/>
   <param name="file_name" value="dummy_wp.txt"/>
-  <!-- <include file="~/agbot_nav_ws/src/agbot_nav/src/1525577693.57.txt"/> -->
 </launch>

@@ -20,8 +20,8 @@ pi = 3.141592653589793238
 global currentPos
 currentPos = Point()
 global file_name
-file_name = rospy.get_param("/file_name")
-
+# file_name = rospy.get_param("/file_name")
+file_name = "dummy_wp.txt"
 
 # Callback function for subscriber to Position and orientation topic:
 def XYZcallback(data):
@@ -37,13 +37,15 @@ def XYZcallback(data):
     currentPos.heading = euler[0]
 
 
+
+
 # 1. Initialize function definition:
 def initialize():
 
     global file_name
     # Create objects for AckermannVehicle and Pure Pursuit controller:
-    mule = AckermannVehicle(2.5772,60*pi/180,0.5)
-    cntrl = PPController(0,mule.length)
+    mule = AckermannVehicle(2.065,4.6,2.2)
+    cntrl = PPController(0,mule.length,mule.minTurningRadius,mule.maximumVelocity)
 
     cntrl.initialize(os.path.join(rospack.get_path("agbot_nav"),"src",file_name))
 
