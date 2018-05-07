@@ -7,6 +7,11 @@ from geometry_msgs.msg import Point32,Pose
 from utilities import Point, AckermannVehicle , PPController
 import transforms3d as tf
 import numpy as np
+import os
+import rospkg
+
+rospack = rospkg.RosPack()
+
 
 ### Define constants:
 pi = 3.141592653589793238
@@ -14,6 +19,9 @@ pi = 3.141592653589793238
 # Define global variables:
 global currentPos
 currentPos = Point()
+global file_name
+file_name = rospy.get_param("/file_name")
+
 
 # Callback function for subscriber to Position and orientation topic:
 def XYZcallback(data):
@@ -32,11 +40,12 @@ def XYZcallback(data):
 # 1. Initialize function definition:
 def initialize():
 
+    global file_name
     # Create objects for AckermannVehicle and Pure Pursuit controller:
     mule = AckermannVehicle(2.5772,60*pi/180,0.5)
     cntrl = PPController(0,mule.length)
 
-    cntrl.initialize('dummy_wp.txt')
+    cntrl.initialize(os.path.join(rospack.get_path("agbot_nav"),"src",file_name))
 
     return cntrl
 
@@ -49,13 +58,14 @@ def execute(cntrl):
     # Setup the ROS publishers and subscribers:
     rospy.Subscriber("/agBOT/local/Pose", Pose, XYZcallback)
     pub = rospy.Publisher('/agBOT/ackermann_cmd', Point32, queue_size =10)
+    pub_goal = rospy.Publisher('/current_goalpoint',Point32,queue_size=10)
     rospy.init_node('ppcontroller', anonymous=True)
 
     rate = rospy.Rate(10)
 
     # Initialize:
     # 1. Parameters:
-    threshold = 1.5
+    threshold = 2.5
     euclideanError = 0
 
     # 2. Points:
@@ -72,6 +82,10 @@ def execute(cntrl):
     while not rospy.is_shutdown():
 
         # Compute the new Euclidean error:
+        current_goalPoint = Point32(goalPoint.x,goalPoint.y,0)
+        # current_goalPoint = [str(goalPoint.x),str(goalPoint.y),'0']
+        pub_goal.publish(current_goalPoint)
+
         euclideanError = math.sqrt((math.pow((goalPoint.x-currentPos.x),2) + math.pow((goalPoint.y-currentPos.y),2)))
 
         # Case #1:Vehicle is in the vicinity of current goal point (waypoint):

@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/senoa95/agbot_nav_ws/devel/.private/waypoint_maker/setup.sh

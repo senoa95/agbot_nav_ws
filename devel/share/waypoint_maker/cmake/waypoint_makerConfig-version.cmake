@@ -1,0 +1,1 @@
+/home/senoa95/agbot_nav_ws/devel/.private/waypoint_maker/share/waypoint_maker/cmake/waypoint_makerConfig-version.cmake

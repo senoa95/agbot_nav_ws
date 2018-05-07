@@ -1,5 +1,6 @@
 import numpy as np
 import math
+import utm
 
 ### Define constants:
 pi = 3.141592653589793238
@@ -52,7 +53,7 @@ class PPController:
 
         self.k_delta = 0.65
 
-        self.k_vel = 0.2
+        self.k_vel = 0.1
 
         self.minVelocity = 0.1
 
@@ -65,7 +66,15 @@ class PPController:
 
         for wp in wPts:
 
+            wpFile = open(fileName, 'r')
+
+            wPts = wpFile.readlines()
+
+        for wp in wPts:
+
             spLine = wp.split( ',')
+
+            # curr_y, curr_x, zoneNum , char = utm.from_latlon(float(spLine[0]) , float(spLine[1]))
 
             self.wpList.append(Point(float(spLine[0]) , float(spLine[1])))
 
@@ -73,6 +82,17 @@ class PPController:
         self.segNormVecList = np.zeros((2,self.nPts))
 
         self.tgtHeading.append(0)
+
+        #
+        #
+        #     spLine = wp.split( ',')
+        #
+        #     self.wpList.append(Point(float(spLine[0]) , float(spLine[1])))
+        #
+        # self.nPts = len(self.wpList)
+        # self.segNormVecList = np.zeros((2,self.nPts))
+        #
+        # self.tgtHeading.append(0)
 
 
         # Loop to compute the target heading values:
@@ -127,8 +147,13 @@ class PPController:
         vel = self.maximumVelocity - abs(self.k_vel*delta)
 
         if vel < self.minVelocity:
-
             vel = self.minVelocity
+
+        if delta > 1:
+            delta = 1
+
+        if delta < -1:
+            delta = -1
 
         return vel,delta
 
