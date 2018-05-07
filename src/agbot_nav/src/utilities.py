@@ -49,9 +49,9 @@ class PPController:
         self.nPts = 0
 
         # Tuning gains:
-        self.k_theta = 0.1
+        self.k_theta = 0.2
 
-        self.k_delta = 0.25
+        self.k_delta = 0.6
 
         self.k_vel = 0.1
 
@@ -115,22 +115,41 @@ class PPController:
         vecRobot2Wp[1,0] =  self.wpList[self.currWpIdx].y - current.y
 
         # Compute the minimum distance from the current segment:
-        minDist = -np.dot(vecRobot2Wp.T, self.segNormVecList[:,self.currWpIdx])
-
-
+        minDist = np.dot(vecRobot2Wp.T, self.segNormVecList[:,self.currWpIdx])
+        theta_gain = self.k_theta * minDist
+        if theta_gain > math.pi/2:
+            theta_gain = math.pi/2
+        if theta_gain < -math.pi/2:
+            theta_gain = -math.pi/2
+        print('minDist = ', minDist)
+        print('theta_gain =', theta_gain)
         # Compute the desired heading angle based of target heading and the min dist:
-        theta_des = self.tgtHeading[self.currWpIdx] + self.k_theta*minDist
+        # if self.tgtHeading[self.currWpIdx] >= 0:
+        theta_des = self.tgtHeading[self.currWpIdx] + theta_gain
+        # else:
+        #     theta_des = self.tgtHeading[self.currWpIdx] - theta_gain
 
-        print("Theta des = ",theta_des)
-        # Compute the steering angle command:
-        delta = self.k_delta*(theta_des - current.heading)
+        print('Theta des = ',theta_des)
+        # Compute the steering agle command:
+        # theta_des_vec =(math.cos(theta_des), math.sin(theta_des))
+        # curr_heading_vec = (math.cos(current.heading), math.sin(current.heading))
+        # delta = self.k_delta*self.angle_between(theta_des_vec, curr_heading_vec)
+        # if theta_des >+ 0:
+        heading_err = theta_des - current.heading
+        if heading_err > math.pi:
+            heading_err = heading_err - 2*math.pi
+        elif heading_err < -math.pi:
+            heading_err = heading_err + 2*math.pi
+        delta = self.k_delta*(heading_err)
+        # else:
+        #     delta =
 
         # Debugging section:
         # if (self.currWpIdx ==0):
         #     # print ( "Normal Vec = ", self.segNormVecList[:,self.currWpIdx])
         #     # print (" Robot2Wp Vec = ", vecRobot2Wp)
         #     print (" Minimum Dist = ", minDist)
-        print (" Target heading = ", self.tgtHeading[self.currWpIdx] )
+        print('Target heading = ', self.tgtHeading[self.currWpIdx] )
         #     print (" Current heading = " , current.heading)
         #     # print (" Desired Theta = ", theta_des)
         #     print (" Steering angle = ", delta)
@@ -179,3 +198,20 @@ class PPController:
         forwardVelocity = 0.4
 
         return forwardVelocity
+    # def unit_vector(self,vector):
+    #     """ Returns the unit vector of the vector.  """
+    #     return vector / np.linalg.norm(vector)
+    #
+    # def angle_between(self,v1, v2):
+    #     """ Returns the angle in radians between vectors 'v1' and 'v2'::
+    #
+    #             >>> angle_between((1, 0, 0), (0, 1, 0))
+    #             1.5707963267948966
+    #             >>> angle_between((1, 0, 0), (1, 0, 0))
+    #             0.0
+    #             >>> angle_between((1, 0, 0), (-1, 0, 0))
+    #             3.141592653589793
+    #     """
+    #     v1_u = self.unit_vector(v1)
+    #     v2_u = self.unit_vector(v2)
+    #     return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))

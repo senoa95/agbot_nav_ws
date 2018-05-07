@@ -20,8 +20,8 @@ pi = 3.141592653589793238
 global currentPos
 currentPos = Point()
 global file_name
-file_name = rospy.get_param("/file_name")
-
+# file_name = rospy.get_param("/file_name")
+file_name = "dummy_wp.txt"
 
 # Callback function for subscriber to Position and orientation topic:
 def XYZcallback(data):
