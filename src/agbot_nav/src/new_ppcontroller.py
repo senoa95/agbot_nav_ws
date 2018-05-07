@@ -22,6 +22,7 @@ currentPos = Point()
 global file_name
 file_name = rospy.get_param("/file_name")
 
+
 # Callback function for subscriber to Position and orientation topic:
 def XYZcallback(data):
 
@@ -84,7 +85,7 @@ def execute(cntrl):
         current_goalPoint = Point32(goalPoint.x,goalPoint.y,0)
         # current_goalPoint = [str(goalPoint.x),str(goalPoint.y),'0']
         pub_goal.publish(current_goalPoint)
-        # print(current_goalPoint)
+
         euclideanError = math.sqrt((math.pow((goalPoint.x-currentPos.x),2) + math.pow((goalPoint.y-currentPos.y),2)))
 
         # Case #1:Vehicle is in the vicinity of current goal point (waypoint):
