@@ -17,21 +17,21 @@ class Point:
 
 # class to define vehicle parameters
 class AckermannVehicle:
-    def __init__(self,inputLength = 1,inputMaximumSteeringAngle = 1,inputMaximumVelocity = 48*pi/180):
+    def __init__(self,inputLength = 2.065,inputMinTurningRadius = 4.6,inputMaximumVelocity = 0.5):
         self.length = inputLength
-        self.maximumSteeringAngle = inputMaximumSteeringAngle
         self.maximumVelocity = inputMaximumVelocity
-        self.minTurningRadius = self.length / math.tan(self.maximumSteeringAngle)
+        # self.minTurningRadius = self.length / math.tan(self.maximumSteeringAngle)
+        self.minTurningRadius = inputMinTurningRadius
 
 # class to define Pure pursuit controller parameters
 class PPController:
 
     # Constructor:
-    def __init__(self,inputLeadDistance,inputLength):
+    def __init__(self,inputLeadDistance,inputLength = 2.065, inputMinTurningRadius = 4.6, inputMaximumVelocity = 0.5):
         self.leadDistance = inputLeadDistance
         self.length = inputLength #set the length for ppcontroller as the length of maximumSteeringAngle
-        self.turningRadius = 1
-        self.maximumVelocity = 0.6
+        self.turningRadius = inputMinTurningRadius
+        self.maximumVelocity = inputMaximumVelocity
 
         # List of waypoints: From start to end:
         self.wpList = []
@@ -49,9 +49,9 @@ class PPController:
         self.nPts = 0
 
         # Tuning gains:
-        self.k_theta = 0.2
+        self.k_theta = 0.1
 
-        self.k_delta = 0.65
+        self.k_delta = 0.25
 
         self.k_vel = 0.1
 
@@ -66,15 +66,7 @@ class PPController:
 
         for wp in wPts:
 
-            wpFile = open(fileName, 'r')
-
-            wPts = wpFile.readlines()
-
-        for wp in wPts:
-
             spLine = wp.split( ',')
-
-            # curr_y, curr_x, zoneNum , char = utm.from_latlon(float(spLine[0]) , float(spLine[1]))
 
             self.wpList.append(Point(float(spLine[0]) , float(spLine[1])))
 
@@ -101,7 +93,7 @@ class PPController:
             self.tgtHeading.append( math.atan2( self.wpList[idx + 1].y - self.wpList[idx].y , self.wpList[idx+1].x - self.wpList[idx].x))
 
             normX = self.wpList[idx].y - self.wpList[idx + 1].y
-            normY = self.wpList[idx + 1].x - self.wpList[idx].x
+            normY = self.wpList[idx + 1].x - self.wpList[idx].x     #bug might live here
 
             # Calculate the norm:
             nVecMag = np.sqrt( normX**2 + normY**2)
@@ -127,9 +119,9 @@ class PPController:
 
 
         # Compute the desired heading angle based of target heading and the min dist:
-        theta_des = self.tgtHeading[self.currWpIdx]  - self.k_theta*minDist
+        theta_des = self.tgtHeading[self.currWpIdx] + self.k_theta*minDist
 
-
+        print("Theta des = ",theta_des)
         # Compute the steering angle command:
         delta = self.k_delta*(theta_des - current.heading)
 
@@ -138,7 +130,7 @@ class PPController:
         #     # print ( "Normal Vec = ", self.segNormVecList[:,self.currWpIdx])
         #     # print (" Robot2Wp Vec = ", vecRobot2Wp)
         #     print (" Minimum Dist = ", minDist)
-        #     print (" Target heading = ", self.tgtHeading[self.currWpIdx] )
+        print (" Target heading = ", self.tgtHeading[self.currWpIdx] )
         #     print (" Current heading = " , current.heading)
         #     # print (" Desired Theta = ", theta_des)
         #     print (" Steering angle = ", delta)
