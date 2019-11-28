@@ -3,7 +3,6 @@ import math
 import utm
 
 ### Define constants:
-pi = 3.141592653589793238
 
 #class to define vehicle position on a coordinate system at a certain heading
 class Point:
@@ -141,6 +140,8 @@ class PPController:
         elif heading_err < -math.pi:
             heading_err = heading_err + 2*math.pi
         delta = self.k_delta*(heading_err)
+        print('delta =', delta)
+        print('heading error', heading_err)
         # else:
         #     delta =
 
@@ -155,7 +156,7 @@ class PPController:
         #     print (" Steering angle = ", delta)
 
         # Compute forward velocity:
-        vel = self.maximumVelocity - abs(self.k_vel*delta)
+        vel = 2
 
         if vel < self.minVelocity:
             vel = self.minVelocity
@@ -176,7 +177,7 @@ class PPController:
         beta = math.atan2((goal.y - current.y),(goal.x-current.y)) # angle between line joining start-end and x axis
         temp = ((current.heading +  3.14))
         temp = (math.fmod(temp , 2*3.14)) - 3.14
-        alpha = temp - beta #angle between current heading and the line joining start-end
+        self.alpha = temp - beta #angle between current heading and the line joining start-end
         L_a = math.sqrt(math.pow((goal.x - current.x),2) + math.pow((goal.y-current.y),2))
         self.turningRadius = L_a / (2*math.sin(alpha)) #this outputs the turning radius
 
@@ -186,16 +187,16 @@ class PPController:
         # Steering angle command from Pure pursuit paper:
         # Steering angle = atan(L/R)
         steeringAngle = math.atan(self.length / self.turningRadius)
-
+        omega = self.alpha
         # @senoa95: I'm commenting out this steering angle command. I did not understand this one.
         #steeringAngle = 0.7*math.sin(alpha)*self.length
 
-        return steeringAngle
+        return omega
 
     # compute forward velocity relative to steering angle
     def compute_forward_velocity(self): #added a variable velocity based on Bijo's suggestion
         #forwardVelocity = mule.maximumVelocity * (1 - atan(abs(steeringAngle))/(pi/2));  //this specifies the forward velocity at a given steering angle
-        forwardVelocity = 0.4
+        forwardVelocity = 1000
 
         return forwardVelocity
     # def unit_vector(self,vector):

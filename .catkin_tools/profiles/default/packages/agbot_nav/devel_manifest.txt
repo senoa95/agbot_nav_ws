@@ -1,4 +1,0 @@
-agbot_nav
-/home/senoa95/agbot_nav_ws/devel/.private/agbot_nav/share/agbot_nav/cmake/agbot_navConfig-version.cmake /home/senoa95/agbot_nav_ws/devel/share/agbot_nav/cmake/agbot_navConfig-version.cmake
-/home/senoa95/agbot_nav_ws/devel/.private/agbot_nav/share/agbot_nav/cmake/agbot_navConfig.cmake /home/senoa95/agbot_nav_ws/devel/share/agbot_nav/cmake/agbot_navConfig.cmake
-/home/senoa95/agbot_nav_ws/devel/.private/agbot_nav/lib/pkgconfig/agbot_nav.pc /home/senoa95/agbot_nav_ws/devel/lib/pkgconfig/agbot_nav.pc

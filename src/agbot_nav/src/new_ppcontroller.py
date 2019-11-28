@@ -9,19 +9,19 @@ import transforms3d as tf
 import numpy as np
 import os
 import rospkg
+import time
 
 rospack = rospkg.RosPack()
 
 
 ### Define constants:
-pi = 3.141592653589793238
 
 # Define global variables:
 global currentPos
 currentPos = Point()
 global file_name
 # file_name = rospy.get_param("/file_name")
-file_name = "dummy_wp.txt"
+file_name = "waypoints_normalized_0.txt"
 
 # Callback function for subscriber to Position and orientation topic:
 def XYZcallback(data):
@@ -44,7 +44,7 @@ def initialize():
 
     global file_name
     # Create objects for AckermannVehicle and Pure Pursuit controller:
-    mule = AckermannVehicle(2.065,4.6,2.2)
+    mule = AckermannVehicle(0.455,0.381/2,3)
     cntrl = PPController(0,mule.length,mule.minTurningRadius,mule.maximumVelocity)
 
     cntrl.initialize(os.path.join(rospack.get_path("agbot_nav"),"src",file_name))
@@ -58,8 +58,8 @@ def execute(cntrl):
     global currentPos
 
     # Setup the ROS publishers and subscribers:
-    rospy.Subscriber("/agBOT/local/Pose", Pose, XYZcallback)
-    pub = rospy.Publisher('/agBOT/ackermann_cmd', Point32, queue_size =10)
+    rospy.Subscriber("/pr2/local/Pose", Pose, XYZcallback)
+    pub = rospy.Publisher('/pr2/cmd_vel', Point32, queue_size =10)
     pub_goal = rospy.Publisher('/current_goalpoint',Point32,queue_size=10)
     rospy.init_node('ppcontroller', anonymous=True)
 
@@ -67,7 +67,7 @@ def execute(cntrl):
 
     # Initialize:
     # 1. Parameters:
-    threshold = 2.5
+    threshold = 0.5
     euclideanError = 0
 
     # 2. Points:
@@ -89,7 +89,7 @@ def execute(cntrl):
         pub_goal.publish(current_goalPoint)
 
         euclideanError = math.sqrt((math.pow((goalPoint.x-currentPos.x),2) + math.pow((goalPoint.y-currentPos.y),2)))
-
+   
         # Case #1:Vehicle is in the vicinity of current goal point (waypoint):
         if (euclideanError < threshold):
 
@@ -97,7 +97,6 @@ def execute(cntrl):
             pub.publish(stationaryCommand)
 
             print (" Reached Waypoint # ", cntrl.currWpIdx +1)
-
             # Update goal Point to next point in the waypoint list:
             cntrl.currWpIdx +=1
 
@@ -113,9 +112,12 @@ def execute(cntrl):
             print (" New goal is: ")
             print (goalPoint.x)
             print (goalPoint.y)
+            time.sleep(0.1)
+        print (" Euclidean Error = ", euclideanError , " meters")
+        
 
 
-        # print (" Euclidean Error = ", euclideanError , " meters")
+        
 
         # Case #2:
         if (euclideanError > threshold):
@@ -124,8 +126,8 @@ def execute(cntrl):
             vel, delta = cntrl.compute_steering_vel_cmds(currentPos)
 
             command = Point32()
-            command.x = delta
-            command.y = vel
+            command.x = vel
+            command.y = delta
 
             # Publish the computed command:
             pub.publish(command)
