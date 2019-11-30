@@ -4,7 +4,7 @@
 import rospy
 import math
 from geometry_msgs.msg import Point32,Pose
-from utilities import Point, AckermannVehicle , PPController
+from utilities import Point, AckermannVehicle , PPController, DiffDriveVehicle
 import transforms3d as tf
 import numpy as np
 import os
@@ -44,7 +44,7 @@ def initialize():
 
     global file_name
     # Create objects for AckermannVehicle and Pure Pursuit controller:
-    mule = AckermannVehicle(0.455,0.381/2,3)
+    mule = DiffDriveVehicle(0.455,0.0,0.195,3)
     cntrl = PPController(0,mule.length,mule.minTurningRadius,mule.maximumVelocity)
 
     cntrl.initialize(os.path.join(rospack.get_path("agbot_nav"),"src",file_name))
@@ -112,7 +112,6 @@ def execute(cntrl):
             print (" New goal is: ")
             print (goalPoint.x)
             print (goalPoint.y)
-            time.sleep(0.1)
         print (" Euclidean Error = ", euclideanError , " meters")
         
 
@@ -128,7 +127,7 @@ def execute(cntrl):
             command = Point32()
             command.x = vel
             command.y = delta
-
+            
             # Publish the computed command:
             pub.publish(command)
 

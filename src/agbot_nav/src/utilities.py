@@ -22,6 +22,14 @@ class AckermannVehicle:
         # self.minTurningRadius = self.length / math.tan(self.maximumSteeringAngle)
         self.minTurningRadius = inputMinTurningRadius
 
+class DiffDriveVehicle:
+    def __init__(self, inputLength=1,inputMinTurningRadius = 0.0,inputTireDiameter=1,inputMaximumVelocity=3):
+        self.length = inputLength
+        self.minTurningRadius = inputMinTurningRadius
+        self.tireDiameter = inputTireDiameter
+        self.maximumVelocity = inputMaximumVelocity
+
+
 # class to define Pure pursuit controller parameters
 class PPController:
 
@@ -48,9 +56,9 @@ class PPController:
         self.nPts = 0
 
         # Tuning gains:
-        self.k_theta = 0.2
+        self.k_theta = 1
 
-        self.k_delta = 0.6
+        self.k_delta = 1
 
         self.k_vel = 0.1
 
@@ -73,18 +81,6 @@ class PPController:
         self.segNormVecList = np.zeros((2,self.nPts))
 
         self.tgtHeading.append(0)
-
-        #
-        #
-        #     spLine = wp.split( ',')
-        #
-        #     self.wpList.append(Point(float(spLine[0]) , float(spLine[1])))
-        #
-        # self.nPts = len(self.wpList)
-        # self.segNormVecList = np.zeros((2,self.nPts))
-        #
-        # self.tgtHeading.append(0)
-
 
         # Loop to compute the target heading values:
         for idx in range(0, len(self.wpList)-1):
@@ -156,16 +152,16 @@ class PPController:
         #     print (" Steering angle = ", delta)
 
         # Compute forward velocity:
-        vel = 2
+        vel = 5
 
-        if vel < self.minVelocity:
-            vel = self.minVelocity
+        # if vel < self.minVelocity:
+        #     vel = self.minVelocity
 
-        if delta > 1:
-            delta = 1
+        # if delta > 1:
+        #     delta = 1
 
-        if delta < -1:
-            delta = -1
+        # if delta < -1:
+        #     delta = -1
 
         return vel,delta
 
